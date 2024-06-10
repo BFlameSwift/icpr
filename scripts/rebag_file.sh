@@ -4,12 +4,14 @@
 TMP_DIR=../temp_data
 SRC_DIR1=../data/test
 SRC_DIR2=../data/train
+SRC_DIR3=../data/validation
 ZIP_FILE=../data.zip
 
 # 创建临时目录并复制所需的目录结构
 mkdir -p $TMP_DIR/data
 cp -r $SRC_DIR1 $TMP_DIR/data/
 cp -r $SRC_DIR2 $TMP_DIR/data/
+cp -r $SRC_DIR3 $TMP_DIR/data/
 
 # 从临时目录中创建 ZIP 文件
 cd $TMP_DIR
