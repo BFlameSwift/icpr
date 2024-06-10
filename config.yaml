@@ -12,7 +12,7 @@ trainer:
         mode: max
         filename: '{epoch}-{step}-{val_ExpRate:.4f}'
   # gpus: 1
-  gpus: 6,7,9
+  gpus: 5,6,7,9
   accelerator: ddp
   check_val_every_n_epoch: 2
   max_epochs: 300
@@ -31,8 +31,9 @@ model:
   cross_coverage: true
   self_coverage: true
   # beam search
-  beam_size: 10
-  max_len: 500
+  # resize 10 to 5
+  beam_size: 5
+  max_len: 300
   alpha: 1.0
   early_stopping: false
   temperature: 1.0
@@ -40,7 +41,7 @@ model:
   learning_rate: 0.08
   patience: 20
   milestones:
-    - 100
+    - 4
     - 150
     - 200
 data:
