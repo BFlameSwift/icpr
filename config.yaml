@@ -38,10 +38,10 @@ model:
   early_stopping: false
   temperature: 1.0
   # training
-  learning_rate: 0.08
+  learning_rate: 1.0
   patience: 20
   milestones:
-    - 4
+    - 100
     - 150
     - 200
 data:
