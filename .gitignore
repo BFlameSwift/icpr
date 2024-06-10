@@ -130,11 +130,13 @@ hme100k
 
 # data
 data/
+data/*
 data/source/
 data/test/
 data/train/
 data.zip
 trainning set/
 ICPR*.zip
+test_data.zip
 
 *.log
