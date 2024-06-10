@@ -98,6 +98,17 @@ class LitCoMER(pl.LightningModule):
             prog_bar=True,
             sync_dist=True,
         )
+        
+        if self.current_epoch < self.hparams.milestones[0]:
+            self.log(
+                "val_ExpRate",
+                self.exprate_recorder,
+                prog_bar=True,
+                on_step=False,
+                on_epoch=True,
+            )
+            return
+
 
         hyps = self.approximate_joint_search(batch.imgs, batch.mask)
 
