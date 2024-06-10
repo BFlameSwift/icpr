@@ -140,3 +140,4 @@ ICPR*.zip
 test_data.zip
 
 *.log
+lightning_logs/*
