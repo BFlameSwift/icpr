@@ -22,7 +22,7 @@ def data_iterator(
     data: Data,
     batch_size: int,
     batch_Imagesize: int = MAX_SIZE,
-    maxlen: int = 500,
+    maxlen: int = 300,
     maxImagesize: int = MAX_SIZE,
 ):
     fname_batch = []
@@ -184,7 +184,7 @@ class CROHMEDatamodule(pl.LightningDataModule):
                     self.scale_aug,
                 )
                 self.val_dataset = CROHMEDataset(
-                    build_dataset(archive, "test", self.eval_batch_size),
+                    build_dataset(archive, "validation", self.eval_batch_size),
                     False,
                     self.scale_aug,
                 )
