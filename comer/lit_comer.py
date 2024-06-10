@@ -34,6 +34,7 @@ class LitCoMER(pl.LightningModule):
         temperature: float,
         # training
         learning_rate: float,
+        milestones: List[int],
         patience: int,
     ):
         super().__init__()
@@ -133,25 +134,16 @@ class LitCoMER(pl.LightningModule):
         return self.comer_model.beam_search(img, mask, **self.hparams)
 
     def configure_optimizers(self):
-        optimizer = optim.SGD(
+        optimizer = optim.Adadelta(
             self.parameters(),
             lr=self.hparams.learning_rate,
-            momentum=0.9,
+            eps=1e-6,
             weight_decay=1e-4,
         )
 
-        reduce_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer,
-            mode="max",
-            factor=0.25,
-            patience=self.hparams.patience // self.trainer.check_val_every_n_epoch,
+        scheduler = optim.lr_scheduler.MultiStepLR(
+            optimizer, milestones=self.hparams.milestones, gamma=0.5
         )
-        scheduler = {
-            "scheduler": reduce_scheduler,
-            "monitor": "val_ExpRate",
-            "interval": "epoch",
-            "frequency": self.trainer.check_val_every_n_epoch,
-            "strict": True,
-        }
 
         return {"optimizer": optimizer, "lr_scheduler": scheduler}
+

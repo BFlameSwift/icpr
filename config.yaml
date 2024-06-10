@@ -39,6 +39,10 @@ model:
   # training
   learning_rate: 0.08
   patience: 20
+  milestones:
+    - 100
+    - 150
+    - 200
 data:
   zipfile_path: data.zip
   test_year: 2014
