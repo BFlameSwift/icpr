@@ -150,7 +150,7 @@ class LitCoMER(pl.LightningModule):
         )
 
         scheduler = optim.lr_scheduler.MultiStepLR(
-            optimizer, milestones=[28, 49], gamma=0.1
+            optimizer, milestones=self.hparams.milestones, gamma=0.1
         )
 
         return {"optimizer": optimizer, "lr_scheduler": scheduler}

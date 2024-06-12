@@ -31,15 +31,17 @@ model:
   cross_coverage: true
   self_coverage: true
   # beam search
-  # resize 10 to 5
-  beam_size: 5
-  max_len: 400
+  beam_size: 10
+  max_len: 300
   alpha: 1.0
   early_stopping: false
   temperature: 1.0
   # training
   learning_rate: 1e-3
   patience: 20
+  milestones:
+    - 28
+    - 50
 data:
   zipfile_path: data.zip
   test_year: 2014
