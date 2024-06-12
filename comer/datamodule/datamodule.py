@@ -22,7 +22,7 @@ def data_iterator(
     data: Data,
     batch_size: int,
     batch_Imagesize: int = MAX_SIZE,
-    maxlen: int = 300,
+    maxlen: int = 600,
     maxImagesize: int = MAX_SIZE,
 ):
     fname_batch = []

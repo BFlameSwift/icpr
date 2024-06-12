@@ -99,15 +99,15 @@ class LitCoMER(pl.LightningModule):
             sync_dist=True,
         )
         
-        if self.current_epoch < self.hparams.milestones[0]:
-            self.log(
-                "val_ExpRate",
-                self.exprate_recorder,
-                prog_bar=True,
-                on_step=False,
-                on_epoch=True,
-            )
-            return
+        # if self.current_epoch < self.hparams.milestones[0]:
+        #     self.log(
+        #         "val_ExpRate",
+        #         self.exprate_recorder,
+        #         prog_bar=True,
+        #         on_step=False,
+        #         on_epoch=True,
+        #     )
+        #     return
 
 
         hyps = self.approximate_joint_search(batch.imgs, batch.mask)
@@ -145,15 +145,12 @@ class LitCoMER(pl.LightningModule):
         return self.comer_model.beam_search(img, mask, **self.hparams)
 
     def configure_optimizers(self):
-        optimizer = optim.Adadelta(
-            self.parameters(),
-            lr=self.hparams.learning_rate,
-            eps=1e-6,
-            weight_decay=1e-4,
+        optimizer = optim.AdamW(
+            self.parameters(), lr=self.hparams.learning_rate, weight_decay=1e-5
         )
 
         scheduler = optim.lr_scheduler.MultiStepLR(
-            optimizer, milestones=self.hparams.milestones, gamma=0.1
+            optimizer, milestones=[28, 49], gamma=0.1
         )
 
         return {"optimizer": optimizer, "lr_scheduler": scheduler}
