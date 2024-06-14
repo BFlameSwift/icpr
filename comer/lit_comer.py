@@ -8,7 +8,7 @@ from torch import FloatTensor, LongTensor
 from comer.datamodule import Batch, vocab
 from comer.model.comer import CoMER
 from comer.utils.utils import (ExpRateRecorder, Hypothesis, ce_loss,
-                               to_bi_tgt_out)
+                               to_bi_tgt_out,WERRecorder)
 
 
 class LitCoMER(pl.LightningModule):
@@ -54,6 +54,7 @@ class LitCoMER(pl.LightningModule):
         )
 
         self.exprate_recorder = ExpRateRecorder()
+        self.wer_recorder = WERRecorder()
 
     def forward(
         self, img: FloatTensor, img_mask: LongTensor, tgt: LongTensor
@@ -99,15 +100,15 @@ class LitCoMER(pl.LightningModule):
             sync_dist=True,
         )
         
-        if self.current_epoch < self.hparams.milestones[0]-3:
-            self.log(
-                "val_ExpRate",
-                self.exprate_recorder,
-                prog_bar=True,
-                on_step=False,
-                on_epoch=True,
-            )
-            return
+        # if self.current_epoch < self.hparams.milestones[0]-10:
+        #     self.log(
+        #         "val_ExpRate",
+        #         self.exprate_recorder,
+        #         prog_bar=True,
+        #         on_step=False,
+        #         on_epoch=True,
+        #     )
+        #     return
 
 
         hyps = self.approximate_joint_search(batch.imgs, batch.mask)
@@ -119,6 +120,11 @@ class LitCoMER(pl.LightningModule):
             prog_bar=True,
             on_step=False,
             on_epoch=True,
+        )
+        
+        self.wer_recorder([h.seq for h in hyps], batch.indices)
+        self.log(
+            "val_WER", self.wer_recorder, prog_bar=True, on_step=False, on_epoch=True
         )
 
     def test_step(self, batch: Batch, _):

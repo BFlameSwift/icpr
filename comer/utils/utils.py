@@ -7,6 +7,8 @@ from einops import rearrange
 from torch import LongTensor
 from torchmetrics import Metric
 
+import editdistance
+
 
 class Hypothesis:
     seq: List[int]
@@ -173,3 +175,22 @@ def to_bi_tgt_out(
     out = torch.cat((l2r_out, r2l_out), dim=0)
 
     return tgt, out
+
+
+
+class WERRecorder(Metric):
+    def __init__(self, dist_sync_on_step=False):
+        super().__init__(dist_sync_on_step=dist_sync_on_step)
+
+        self.add_state("total_line", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("wer", default=torch.tensor(0.0), dist_reduce_fx="sum")
+
+    def update(self, indices_hat: List[List[int]], indices: List[List[int]]):
+        for pred, truth in zip(indices_hat, indices):
+            d = editdistance.eval(pred, truth)
+            self.wer += d / len(truth)
+            self.total_line += 1
+
+    def compute(self) -> float:
+        wer = self.wer / self.total_line
+        return wer
