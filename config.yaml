@@ -10,12 +10,12 @@ trainer:
         save_top_k: 1
         monitor: val_ExpRate
         mode: max
-        filename: '{epoch}-{step}-{val_ExpRate:.4f}'
+        filename: '{epoch}-{step}-{val_ExpRate:.4f}-{val_WER:.4f}'
   # gpus: 1
   gpus: 5,6,7,9
   accelerator: ddp
-  check_val_every_n_epoch: 2
-  max_epochs: 160
+  check_val_every_n_epoch: 1
+  max_epochs: 200
   deterministic: true
 model:
   d_model: 256
@@ -31,8 +31,8 @@ model:
   cross_coverage: true
   self_coverage: true
   # beam search
-  beam_size: 10
-  max_len: 512
+  beam_size: 5
+  max_len: 400
   alpha: 1.0
   early_stopping: false
   temperature: 1.0
@@ -40,8 +40,8 @@ model:
   learning_rate: 5e-3
   patience: 20
   milestones:
-    - 48
-    - 112
+    - 60
+    - 140
 data:
   zipfile_path: data.zip
   test_year: 2014

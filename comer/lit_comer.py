@@ -126,7 +126,8 @@ class LitCoMER(pl.LightningModule):
         self.log(
             "val_WER", self.wer_recorder, prog_bar=True, on_step=False, on_epoch=True
         )
-
+        print("wer",self.wer_recorder.wer)
+    
     def test_step(self, batch: Batch, _):
 
         hyps = self.approximate_joint_search(batch.imgs, batch.mask)
@@ -154,10 +155,21 @@ class LitCoMER(pl.LightningModule):
         optimizer = optim.AdamW(
             self.parameters(), lr=self.hparams.learning_rate, weight_decay=1e-5
         )
-
-        scheduler = optim.lr_scheduler.MultiStepLR(
-            optimizer, milestones=self.hparams.milestones, gamma=0.1
-        )
+        # step  ---
+        # scheduler = optim.lr_scheduler.MultiStepLR(
+        #     optimizer, milestones=self.hparams.milestones, gamma=0.1
+        # )
+        
+        # --- plateau
+        reduce_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+            optimizer, mode='max', factor=0.1, patience=self.hparams.patience // self.check_val_every_n_epoch, verbose=True)
+        scheduler = {
+            "scheduler": reduce_scheduler,
+            "monitor": "val_WER",
+            "interval": "epoch",
+            "frequency": self.check_val_every_n_epoch,
+            "strict": True,
+        }
 
         return {"optimizer": optimizer, "lr_scheduler": scheduler}
 
