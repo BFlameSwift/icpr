@@ -1,3 +1,15 @@
+import sys
+import os
+
+# 获取当前工作目录
+current_dir = os.getcwd()
+
+# 添加项目根目录到 sys.path
+project_dir = os.path.abspath(os.path.join(current_dir, './'))
+# print(project_dir)
+sys.path.append(project_dir)
+
+
 import os
 
 import typer
@@ -16,7 +28,7 @@ def main(version: str, test_year: str):
     ckp_path = os.path.join(ckp_folder, fnames[0])
     print(f"Test with fname: {fnames[0]}")
 
-    trainer = Trainer(logger=False, gpus=[5,6,7,9])
+    trainer = Trainer(logger=False, gpus=[4,5,6,7,9])
 
     dm = CROHMEDatamodule(test_year=test_year, eval_batch_size=4)
 

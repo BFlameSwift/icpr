@@ -8,7 +8,7 @@ from torch import FloatTensor, LongTensor
 from comer.datamodule import Batch, vocab
 from comer.model.comer import CoMER
 from comer.utils.utils import (ExpRateRecorder, Hypothesis, ce_loss,
-                               to_bi_tgt_out,WERRecorder)
+                               to_bi_tgt_out,WERRecorder,BLEURecorder)
 
 
 class LitCoMER(pl.LightningModule):
@@ -55,6 +55,7 @@ class LitCoMER(pl.LightningModule):
 
         self.exprate_recorder = ExpRateRecorder()
         self.wer_recorder = WERRecorder()
+        self.bleu_recorder = BLEURecorder()
 
     def forward(
         self, img: FloatTensor, img_mask: LongTensor, tgt: LongTensor
@@ -100,7 +101,9 @@ class LitCoMER(pl.LightningModule):
             sync_dist=True,
         )
         
-        # if self.current_epoch < self.hparams.milestones[0]-10:
+        
+        # TODO  100 epochs for warm up
+        # if self.current_epoch < 100 :
         #     self.log(
         #         "val_ExpRate",
         #         self.exprate_recorder,
@@ -108,6 +111,12 @@ class LitCoMER(pl.LightningModule):
         #         on_step=False,
         #         on_epoch=True,
         #     )
+        #     self.log( 
+        #         "val_WER", self.wer_recorder, prog_bar=True, on_step=False, on_epoch=True
+        #     )
+        #     self.log(
+        #     "val_BLEU", self.bleu_recorder, prog_bar=True, on_step=False, on_epoch=True
+        #     )   
         #     return
 
 
@@ -123,10 +132,16 @@ class LitCoMER(pl.LightningModule):
         )
         
         self.wer_recorder([h.seq for h in hyps], batch.indices)
+        self.bleu_recorder([h.seq for h in hyps], batch.indices)
         self.log(
             "val_WER", self.wer_recorder, prog_bar=True, on_step=False, on_epoch=True
         )
-        print("wer",self.wer_recorder.wer)
+        self.log(
+            "val_BLEU", self.bleu_recorder, prog_bar=True, on_step=False, on_epoch=True
+        )
+        # print(f"Validation WER: {self.wer_recorder.wer/self.wer_recorder.total_line}")
+        # print(f"Validation BLEU: {self.bleu_recorder.total_bleu / self.bleu_recorder.total_line}")
+        # print("wer",self.wer_recorder.wer)
     
     def test_step(self, batch: Batch, _):
 
@@ -136,7 +151,11 @@ class LitCoMER(pl.LightningModule):
 
     def test_epoch_end(self, test_outputs) -> None:
         exprate = self.exprate_recorder.compute()
+        wer = self.bleu_recorder.compute()
+        bleu = self.bleu_recorder.compute()
         print(f"Validation ExpRate: {exprate}")
+        print(f"Validation WER: {self.wer_recorder.wer/self.wer_recorder.total_line}")
+        print(f"Validation BLEU: {self.bleu_recorder.total_bleu / self.bleu_recorder.total_line}")
 
         with zipfile.ZipFile("result.zip", "w") as zip_f:
             for img_bases, preds in test_outputs:
@@ -162,12 +181,13 @@ class LitCoMER(pl.LightningModule):
         
         # --- plateau
         reduce_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, mode='max', factor=0.1, patience=self.hparams.patience // self.check_val_every_n_epoch, verbose=True)
+            optimizer, mode='max', factor=0.25, patience=self.hparams.patience // 1, verbose=True)
         scheduler = {
             "scheduler": reduce_scheduler,
-            "monitor": "val_WER",
+            # "monitor": "val_WER",
+            "monitor": "val_BLEU",
             "interval": "epoch",
-            "frequency": self.check_val_every_n_epoch,
+            "frequency": 1,
             "strict": True,
         }
 

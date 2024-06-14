@@ -10,7 +10,7 @@ trainer:
         save_top_k: 1
         monitor: val_ExpRate
         mode: max
-        filename: '{epoch}-{step}-{val_ExpRate:.4f}-{val_WER:.4f}'
+        filename: '{epoch}-{step}-{val_BLEU:.4f}-{val_ExpRate:.4f}-{val_WER:.4f}'
   # gpus: 1
   gpus: 5,6,7,9
   accelerator: ddp
@@ -37,7 +37,7 @@ model:
   early_stopping: false
   temperature: 1.0
   # training
-  learning_rate: 5e-3
+  learning_rate: 1e-3
   patience: 20
   milestones:
     - 60

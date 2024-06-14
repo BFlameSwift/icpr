@@ -8,6 +8,7 @@ from torch import LongTensor
 from torchmetrics import Metric
 
 import editdistance
+from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 
 
 class Hypothesis:
@@ -194,3 +195,26 @@ class WERRecorder(Metric):
     def compute(self) -> float:
         wer = self.wer / self.total_line
         return wer
+    
+    
+class BLEURecorder(Metric):
+    def __init__(self, dist_sync_on_step=False):
+        super().__init__(dist_sync_on_step=dist_sync_on_step)
+
+        self.add_state("total_bleu", default=torch.tensor(0.0), dist_reduce_fx="sum")
+        self.add_state("total_line", default=torch.tensor(0.0), dist_reduce_fx="sum")
+
+    def update(self, indices_hat: List[List[int]], indices: List[List[int]]):
+        smooth = SmoothingFunction().method4
+        for pred, truth in zip(indices_hat, indices):
+            pred = vocab.indices2label(pred)
+            truth = [vocab.indices2label(truth)]
+
+            bleu_score = sentence_bleu(truth, pred, smoothing_function=smooth)
+
+            self.total_bleu += bleu_score
+            self.total_line += 1
+
+    def compute(self) -> float:
+        bleu = self.total_bleu / self.total_line
+        return bleu
