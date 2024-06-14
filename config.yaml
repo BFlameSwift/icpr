@@ -32,7 +32,7 @@ model:
   self_coverage: true
   # beam search
   beam_size: 10
-  max_len: 300
+  max_len: 400
   alpha: 1.0
   early_stopping: false
   temperature: 1.0

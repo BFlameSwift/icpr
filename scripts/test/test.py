@@ -16,7 +16,7 @@ def main(version: str, test_year: str):
     ckp_path = os.path.join(ckp_folder, fnames[0])
     print(f"Test with fname: {fnames[0]}")
 
-    trainer = Trainer(logger=False, gpus=1)
+    trainer = Trainer(logger=False, gpus=[5,6,7,9])
 
     dm = CROHMEDatamodule(test_year=test_year, eval_batch_size=4)
 
