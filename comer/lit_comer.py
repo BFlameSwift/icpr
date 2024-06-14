@@ -36,6 +36,7 @@ class LitCoMER(pl.LightningModule):
         learning_rate: float,
         milestones: List[int],
         patience: int,
+
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -103,21 +104,21 @@ class LitCoMER(pl.LightningModule):
         
         
         # TODO  100 epochs for warm up
-        # if self.current_epoch < 100 :
-        #     self.log(
-        #         "val_ExpRate",
-        #         self.exprate_recorder,
-        #         prog_bar=True,
-        #         on_step=False,
-        #         on_epoch=True,
-        #     )
-        #     self.log( 
-        #         "val_WER", self.wer_recorder, prog_bar=True, on_step=False, on_epoch=True
-        #     )
-        #     self.log(
-        #     "val_BLEU", self.bleu_recorder, prog_bar=True, on_step=False, on_epoch=True
-        #     )   
-        #     return
+        if self.current_epoch < 100 :
+            self.log(
+                "val_ExpRate",
+                self.exprate_recorder,
+                prog_bar=True,
+                on_step=False,
+                on_epoch=True,
+            )
+            self.log( 
+                "val_WER", self.wer_recorder, prog_bar=True, on_step=False, on_epoch=True
+            )
+            self.log(
+            "val_BLEU", self.bleu_recorder, prog_bar=True, on_step=False, on_epoch=True
+            )   
+            return
 
 
         hyps = self.approximate_joint_search(batch.imgs, batch.mask)
@@ -153,6 +154,7 @@ class LitCoMER(pl.LightningModule):
         exprate = self.exprate_recorder.compute()
         wer = self.bleu_recorder.compute()
         bleu = self.bleu_recorder.compute()
+        
         print(f"Validation ExpRate: {exprate}")
         print(f"Validation WER: {self.wer_recorder.wer/self.wer_recorder.total_line}")
         print(f"Validation BLEU: {self.bleu_recorder.total_bleu / self.bleu_recorder.total_line}")
@@ -181,13 +183,13 @@ class LitCoMER(pl.LightningModule):
         
         # --- plateau
         reduce_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, mode='max', factor=0.25, patience=self.hparams.patience // 1, verbose=True)
+            optimizer, mode='max', factor=0.25, patience=self.hparams.patience // self.trainer.check_val_every_n_epoch ,verbose=True)
         scheduler = {
             "scheduler": reduce_scheduler,
             # "monitor": "val_WER",
             "monitor": "val_BLEU",
             "interval": "epoch",
-            "frequency": 1,
+            "frequency": self.trainer.check_val_every_n_epoch,
             "strict": True,
         }
 
