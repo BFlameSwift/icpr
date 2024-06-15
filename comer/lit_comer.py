@@ -104,9 +104,12 @@ class LitCoMER(pl.LightningModule):
         
         
         # TODO  100 epochs for warm up
+        # For the first 100 epochs, log a constant value for val_ExpRate to avoid triggering scheduler
         if self.current_epoch < 100 :
+            constant_value = 1.0
             self.log(
                 "val_ExpRate",
+                 torch.tensor(constant_value),
                 self.exprate_recorder,
                 prog_bar=True,
                 on_step=False,
