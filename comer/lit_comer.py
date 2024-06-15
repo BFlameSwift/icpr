@@ -173,25 +173,27 @@ class LitCoMER(pl.LightningModule):
         return self.comer_model.beam_search(img, mask, **self.hparams)
 
     def configure_optimizers(self):
-        optimizer = optim.AdamW(
-            self.parameters(), lr=self.hparams.learning_rate, weight_decay=1e-5
+        optimizer = optim.SGD(
+            self.parameters(),
+            lr=self.hparams.learning_rate,
+            momentum=0.9,
+            weight_decay=1e-4,
         )
-        # step  ---
-        # scheduler = optim.lr_scheduler.MultiStepLR(
-        #     optimizer, milestones=self.hparams.milestones, gamma=0.1
-        # )
-        
-        # --- plateau
+
         reduce_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, mode='max', factor=0.25, patience=self.hparams.patience // self.trainer.check_val_every_n_epoch ,verbose=True)
+            optimizer,
+            mode="max",
+            factor=0.25,
+            patience=self.hparams.patience // self.trainer.check_val_every_n_epoch,
+        )
         scheduler = {
             "scheduler": reduce_scheduler,
-            # "monitor": "val_WER",
-            "monitor": "val_BLEU",
+            "monitor": "val_ExpRate",
             "interval": "epoch",
             "frequency": self.trainer.check_val_every_n_epoch,
             "strict": True,
         }
 
         return {"optimizer": optimizer, "lr_scheduler": scheduler}
+
 

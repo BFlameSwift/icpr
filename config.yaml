@@ -12,7 +12,7 @@ trainer:
         mode: max
         filename: '{epoch}-{step}-{val_BLEU:.4f}-{val_ExpRate:.4f}-{val_WER:.4f}'
   # gpus: 1
-  gpus: 5,6,7,9
+  gpus: 0,1,2,3
   accelerator: ddp
   check_val_every_n_epoch: 2
   max_epochs: 200
@@ -37,7 +37,7 @@ model:
   early_stopping: false
   temperature: 1.0
   # training
-  learning_rate: 1e-3
+  learning_rate: 0.08
   patience: 20
   milestones:
     - 60
