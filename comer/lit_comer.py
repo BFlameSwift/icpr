@@ -4,6 +4,7 @@ from typing import List
 import pytorch_lightning as pl
 import torch.optim as optim
 from torch import FloatTensor, LongTensor
+import torch
 
 from comer.datamodule import Batch, vocab
 from comer.model.comer import CoMER
@@ -104,7 +105,9 @@ class LitCoMER(pl.LightningModule):
         
         
         # TODO  100 epochs for warm up
+        # For the first 100 epochs, log a constant value for val_ExpRate to avoid triggering scheduler
         if self.current_epoch < 100 :
+            constant_value = 1.0
             self.log(
                 "val_ExpRate",
                 self.exprate_recorder,
@@ -113,13 +116,15 @@ class LitCoMER(pl.LightningModule):
                 on_epoch=True,
             )
             self.log( 
-                "val_WER", self.wer_recorder, prog_bar=True, on_step=False, on_epoch=True
+                "val_WER", 
+                self.wer_recorder, prog_bar=True, on_step=False, on_epoch=True
             )
             self.log(
-            "val_BLEU", self.bleu_recorder, prog_bar=True, on_step=False, on_epoch=True
+            "val_BLEU", 
+             torch.tensor(constant_value),
+            self.bleu_recorder, prog_bar=True, on_step=False, on_epoch=True
             )   
             return
-
 
         hyps = self.approximate_joint_search(batch.imgs, batch.mask)
 
