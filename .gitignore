@@ -139,6 +139,8 @@ trainning set/
 ICPR*.zip
 test_data.zip
 
+temp/
+
 *.log
 lightning_logs/*
 
