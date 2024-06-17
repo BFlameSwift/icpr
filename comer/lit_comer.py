@@ -105,8 +105,8 @@ class LitCoMER(pl.LightningModule):
         
         
         # TODO  100 epochs for warm up
-        # For the first 100 epochs, log a  increasing but small value for val_ExpRate to avoid triggering scheduler
-        if self.current_epoch < 100  :
+        # For the first 20 epochs, log a  increasing but small value for val_ExpRate to avoid triggering scheduler
+        if self.current_epoch < 20  :
             self.log(
                 "val_ExpRate",
                 torch.tensor(float(self.current_epoch)/1e6),
@@ -176,20 +176,42 @@ class LitCoMER(pl.LightningModule):
         return self.comer_model.beam_search(img, mask, **self.hparams)
 
     def configure_optimizers(self):
-        optimizer = optim.AdamW(
-            self.parameters(), lr=self.hparams.learning_rate, weight_decay=1e-5
-        )
+        # optimizer = optim.AdamW(
+        #     self.parameters(), lr=self.hparams.learning_rate, weight_decay=1e-5
+        # )
         # step  ---
         # scheduler = optim.lr_scheduler.MultiStepLR(
         #     optimizer, milestones=self.hparams.milestones, gamma=0.1
         # )
         
         # --- plateau
+        # reduce_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+        #     optimizer, mode='max', factor=0.25, patience=self.hparams.patience // self.trainer.check_val_every_n_epoch ,verbose=True)
+        # scheduler = {
+        #     "scheduler": reduce_scheduler,
+        #     # "monitor": "val_WER",
+        #     "monitor": "val_ExpRate",
+        #     "interval": "epoch",
+        #     "frequency": self.trainer.check_val_every_n_epoch,
+        #     "strict": True,
+        # }
+
+        # return {"optimizer": optimizer, "lr_scheduler": scheduler}
+        optimizer = optim.Adadelta(
+            self.parameters(),
+            lr=self.hparams.learning_rate,
+            eps=1e-6,
+            weight_decay=1e-4,
+        )
+
         reduce_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer, mode='max', factor=0.25, patience=self.hparams.patience // self.trainer.check_val_every_n_epoch ,verbose=True)
+            optimizer,
+            mode="max",
+            factor=0.1,
+            patience=self.hparams.patience // self.trainer.check_val_every_n_epoch,
+        )
         scheduler = {
             "scheduler": reduce_scheduler,
-            # "monitor": "val_WER",
             "monitor": "val_ExpRate",
             "interval": "epoch",
             "frequency": self.trainer.check_val_every_n_epoch,
