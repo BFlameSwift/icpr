@@ -39,7 +39,7 @@ tests/save_dir
 tests/tests_tt_dir/
 processed/
 raw/
-notebooks/
+# notebooks/
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
