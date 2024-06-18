@@ -212,7 +212,7 @@ class LitCoMER(pl.LightningModule):
         )
         scheduler = {
             "scheduler": reduce_scheduler,
-            "monitor": "val_ExpRate",
+            "monitor": "val_BLEU",
             "interval": "epoch",
             "frequency": self.trainer.check_val_every_n_epoch,
             "strict": True,
