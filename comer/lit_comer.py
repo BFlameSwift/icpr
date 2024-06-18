@@ -106,10 +106,10 @@ class LitCoMER(pl.LightningModule):
         
         # TODO  100 epochs for warm up
         # For the first 20 epochs, log a  increasing but small value for val_ExpRate to avoid triggering scheduler
-        if self.current_epoch < 20  :
+        if self.current_epoch < 20  and (self.current_epoch % 10 != 9  or self.current_epoch % 10 != 0 ):
             self.log(
                 "val_ExpRate",
-                torch.tensor(float(self.current_epoch)/1e6),
+                self.exprate_recorder,
                 prog_bar=True,
                 on_step=False,
                 on_epoch=True,
@@ -127,6 +127,9 @@ class LitCoMER(pl.LightningModule):
         hyps = self.approximate_joint_search(batch.imgs, batch.mask)
 
         self.exprate_recorder([h.seq for h in hyps], batch.indices)
+        self.wer_recorder([h.seq for h in hyps], batch.indices)
+        self.bleu_recorder([h.seq for h in hyps], batch.indices)
+        
         self.log(
             "val_ExpRate",
             self.exprate_recorder,
@@ -134,9 +137,6 @@ class LitCoMER(pl.LightningModule):
             on_step=False,
             on_epoch=True,
         )
-        
-        self.wer_recorder([h.seq for h in hyps], batch.indices)
-        self.bleu_recorder([h.seq for h in hyps], batch.indices)
         self.log(
             "val_WER", self.wer_recorder, prog_bar=True, on_step=False, on_epoch=True
         )

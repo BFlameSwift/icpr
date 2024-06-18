@@ -34,7 +34,7 @@ def data_iterator(
     biggest_image_size = 0
     
     # TODO 
-    batch_size = batch_size // 2
+    batch_size = batch_size
 
     data.sort(key=lambda x: x[1].size[0] * x[1].size[1])
 
@@ -52,7 +52,7 @@ def data_iterator(
                 f"image: {fname} size: {fea.shape[0]} x {fea.shape[1]} =  bigger than {maxImagesize}, ignore"
             )
         else:
-            if batch_image_size*2 > batch_Imagesize or i == batch_size:  # a batch is full
+            if batch_image_size  > batch_Imagesize or i == batch_size:  # a batch is full
                 fname_total.append(fname_batch)
                 feature_total.append(feature_batch)
                 label_total.append(label_batch)
