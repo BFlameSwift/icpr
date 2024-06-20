@@ -105,8 +105,8 @@ class LitCoMER(pl.LightningModule):
         
         
         # TODO  100 epochs for warm up
-        # For the first 20 epochs, log a  increasing but small value for val_ExpRate to avoid triggering scheduler
-        if self.current_epoch < 50:
+        # For the first 30 epochs, log a  increasing but small value for val_ExpRate to avoid triggering scheduler
+        if self.current_epoch < 18  and (self.current_epoch % 10 != 9  or self.current_epoch % 10 != 0 ):
             self.log(
                 "val_ExpRate",
                 self.exprate_recorder,
@@ -215,7 +215,7 @@ class LitCoMER(pl.LightningModule):
             "monitor": "val_ExpRate",
             "interval": "epoch",
             "frequency": self.trainer.check_val_every_n_epoch,
-            "strict": False,
+            "strict": True,
         }
 
         return {"optimizer": optimizer, "lr_scheduler": scheduler}

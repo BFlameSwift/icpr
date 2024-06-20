@@ -148,3 +148,6 @@ lightning_logs/*
 .env
 result.zip
 result/
+notebooks/test_api.ipynb
+notebooks/api.txt
+notebooks/test_api.py
