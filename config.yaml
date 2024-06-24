@@ -44,7 +44,7 @@ model:
     - 60
     - 140
 data:
-  zipfile_path: data.zip
+  zipfile_path: data-gauss.zip
   test_year: 2014
   train_batch_size: 8
   eval_batch_size: 4
