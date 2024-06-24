@@ -151,3 +151,6 @@ result/
 notebooks/test_api.ipynb
 notebooks/api.txt
 notebooks/test_api.py
+
+*.zip
+
