@@ -151,6 +151,8 @@ class LitCoMER(pl.LightningModule):
 
         hyps = self.approximate_joint_search(batch.imgs, batch.mask)
         self.exprate_recorder([h.seq for h in hyps], batch.indices)
+        self.wer_recorder([h.seq for h in hyps], batch.indices)
+        self.bleu_recorder([h.seq for h in hyps], batch.indices)
         return batch.img_bases, [vocab.indices2label(h.seq) for h in hyps]
 
     def test_epoch_end(self, test_outputs) -> None:
@@ -158,6 +160,7 @@ class LitCoMER(pl.LightningModule):
         wer = self.bleu_recorder.compute()
         bleu = self.bleu_recorder.compute()
         
+        print()
         print(f"Validation ExpRate: {exprate}")
         print(f"Validation WER: {self.wer_recorder.wer/self.wer_recorder.total_line}")
         print(f"Validation BLEU: {self.bleu_recorder.total_bleu / self.bleu_recorder.total_line}")
