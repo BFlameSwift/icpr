@@ -143,9 +143,7 @@ class LitCoMER(pl.LightningModule):
         self.log(
             "val_BLEU", self.bleu_recorder, prog_bar=True, on_step=False, on_epoch=True
         )
-        # print(f"Validation WER: {self.wer_recorder.wer/self.wer_recorder.total_line}")
-        # print(f"Validation BLEU: {self.bleu_recorder.total_bleu / self.bleu_recorder.total_line}")
-        # print("wer",self.wer_recorder.wer)
+
     
     def test_step(self, batch: Batch, _):
 
@@ -179,9 +177,9 @@ class LitCoMER(pl.LightningModule):
         return self.comer_model.beam_search(img, mask, **self.hparams)
 
     def configure_optimizers(self):
-        # optimizer = optim.AdamW(
-        #     self.parameters(), lr=self.hparams.learning_rate, weight_decay=1e-5
-        # )
+        optimizer = optim.AdamW(
+            self.parameters(), lr=self.hparams.learning_rate, weight_decay=1e-5
+        )
         # step  ---
         # scheduler = optim.lr_scheduler.MultiStepLR(
         #     optimizer, milestones=self.hparams.milestones, gamma=0.1
@@ -200,12 +198,12 @@ class LitCoMER(pl.LightningModule):
         # }
 
         # return {"optimizer": optimizer, "lr_scheduler": scheduler}
-        optimizer = optim.Adadelta(
-            self.parameters(),
-            lr=self.hparams.learning_rate,
-            eps=1e-6,
-            weight_decay=1e-4,
-        )
+        # optimizer = optim.Adadelta(
+        #     self.parameters(),
+        #     lr=self.hparams.learning_rate,
+        #     eps=1e-6,
+        #     weight_decay=1e-4,
+        # )
 
         reduce_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
