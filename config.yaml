@@ -15,7 +15,7 @@ trainer:
   gpus: 0,1,2,3
   accelerator: ddp
   check_val_every_n_epoch: 2
-  max_epochs: 300
+  max_epochs: 500
 
   deterministic: true
 model:
@@ -38,13 +38,13 @@ model:
   early_stopping: false
   temperature: 1.0
   # training
-  learning_rate: 1
+  learning_rate: 5e-4
   patience: 20
   milestones:
     - 60
     - 140
 data:
-  zipfile_path: data-gauss.zip
+  zipfile_path: data.zip
   test_year: 2014
   train_batch_size: 8
   eval_batch_size: 4
