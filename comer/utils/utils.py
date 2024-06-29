@@ -10,6 +10,9 @@ from torchmetrics import Metric
 import editdistance
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 
+from torch.optim import SGD, Adam, AdamW, Optimizer
+from torch.optim.lr_scheduler import (CosineAnnealingLR, MultiStepLR, StepLR,
+                                      _LRScheduler)
 
 class Hypothesis:
     seq: List[int]
@@ -218,3 +221,37 @@ class BLEURecorder(Metric):
     def compute(self) -> float:
         bleu = self.total_bleu / self.total_line
         return bleu
+
+
+class LinearWarmupScheduler(_LRScheduler):
+    def __init__(self, optimizer: Optimizer, warmup_steps: int, final_lr: float, last_epoch: int = -1):
+        self.warmup_steps = warmup_steps
+        self.final_lr = final_lr
+        super(LinearWarmupScheduler, self).__init__(optimizer, last_epoch)
+
+    def get_lr(self):
+        if self.last_epoch < self.warmup_steps:
+            return [self.final_lr * (self.last_epoch + 1) / self.warmup_steps for _ in self.optimizer.param_groups]
+        else:
+            return [group['lr'] for group in self.optimizer.param_groups]
+
+class CombinedScheduler:
+    def __init__(self, warmup_scheduler, main_scheduler):
+        self.warmup_scheduler = warmup_scheduler
+        self.main_scheduler = main_scheduler
+
+    def step(self, epoch=None, metrics=None):
+        if self.warmup_scheduler.last_epoch < self.warmup_scheduler.warmup_steps:
+            self.warmup_scheduler.step(epoch)
+        else:
+            self.main_scheduler.step(epoch if epoch is not None else self.warmup_scheduler.last_epoch - self.warmup_scheduler.warmup_steps, metrics)
+
+    def state_dict(self):
+        return {
+            "warmup_scheduler": self.warmup_scheduler.state_dict(),
+            "main_scheduler": self.main_scheduler.state_dict()
+        }
+
+    def load_state_dict(self, state_dict):
+        self.warmup_scheduler.load_state_dict(state_dict["warmup_scheduler"])
+        self.main_scheduler.load_state_dict(state_dict["main_scheduler"])

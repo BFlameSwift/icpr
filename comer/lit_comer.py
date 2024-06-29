@@ -6,10 +6,13 @@ import torch.optim as optim
 from torch import FloatTensor, LongTensor
 import torch
 
+
+import math 
+from torch.optim.lr_scheduler import LambdaLR
 from comer.datamodule import Batch, vocab
 from comer.model.comer import CoMER
 from comer.utils.utils import (ExpRateRecorder, Hypothesis, ce_loss,
-                               to_bi_tgt_out,WERRecorder,BLEURecorder)
+                               to_bi_tgt_out,WERRecorder,BLEURecorder,LinearWarmupScheduler,CombinedScheduler)
 
 
 class LitCoMER(pl.LightningModule):
@@ -38,6 +41,9 @@ class LitCoMER(pl.LightningModule):
         milestones: List[int],
         patience: int,
         warmup_epochs: int,
+        warmup_steps: int,
+        scheduler_name: str,
+        optimizer_name: str,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -181,67 +187,85 @@ class LitCoMER(pl.LightningModule):
         optimizer = optim.AdamW(
             self.parameters(), lr=self.hparams.learning_rate, weight_decay=1e-5
         )
-        # step  ---
-        # scheduler = optim.lr_scheduler.MultiStepLR(
-        #     optimizer, milestones=self.hparams.milestones, gamma=0.1
-        # )
-        
-        # --- plateau
-        # reduce_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-        #     optimizer, mode='max', factor=0.25, patience=self.hparams.patience // self.trainer.check_val_every_n_epoch ,verbose=True)
-        # scheduler = {
-        #     "scheduler": reduce_scheduler,
-        #     # "monitor": "val_WER",
-        #     "monitor": "val_ExpRate",
-        #     "interval": "epoch",
-        #     "frequency": self.trainer.check_val_every_n_epoch,
-        #     "strict": True,
-        # }
+        if self.hparams.optimizer_name == 'adam':
+            optimizer = optim.Adam(
+                self.parameters(), lr=self.hparams.learning_rate
+            )
+        elif self.hparams.optimizer_name == 'adadelta':
+            optimizer = optim.Adadelta(
+                self.parameters(),
+                lr=self.hparams.learning_rate,
+                eps=1e-6,
+                weight_decay=1e-4,
+            )
+        elif self.hparams.optimizer_name == 'adamw':
+            optimizer = optim.AdamW(
+                self.parameters(), lr=self.hparams.learning_rate, weight_decay=1e-5
+            )
 
-        # return {"optimizer": optimizer, "lr_scheduler": scheduler}
-        # optimizer = optim.Adadelta(
-        #     self.parameters(),
-        #     lr=self.hparams.learning_rate,
-        #     eps=1e-6,
-        #     weight_decay=1e-4,
-        # )
-        def warmup_lr(epoch):
-            if epoch < self.warmup_epochs:
-                return 1.0
-            else:
-                return 0.1 ** ((epoch - self.warmup_epochs) // self.hparams.patience)
-        from torch.optim.lr_scheduler import LambdaLR
-        warmup_scheduler = LambdaLR(optimizer, lr_lambda=warmup_lr)
-
-        reduce_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
-            optimizer,
-            mode="max",
-            factor=0.1,
-            patience=self.hparams.patience // self.trainer.check_val_every_n_epoch,
+        # init scheduler
+        scheduler = None
+        init_scheduler = optim.lr_scheduler.MultiStepLR(
+            optimizer, milestones=self.hparams.milestones, gamma=0.1
         )
-        # scheduler = {
-        #     "scheduler": reduce_scheduler,
-        #     "monitor": "val_ExpRate",
-        #     "interval": "epoch",
-        #     "frequency": self.trainer.check_val_every_n_epoch,
-        #     "strict": True,
-        # }
+        
+        reduce_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
+                optimizer,
+                mode="max",
+                factor=0.1,
+                patience=self.hparams.patience // self.trainer.check_val_every_n_epoch,
+            )
+        
+        if self.hparams.scheduler_name == 'warmup_plateau':
+            
+            def warmup_lr(epoch):
+                if epoch < self.warmup_epochs:
+                    return 1.0
+                else:
+                    return 0.1 ** ((epoch - self.warmup_epochs) // self.hparams.patience)
 
-        # return {"optimizer": optimizer, "lr_scheduler": scheduler}
-        return {
-            "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": warmup_scheduler,
-                "interval": "epoch",
-                "frequency": 1,
-                "reduce_on_plateau": False,  # Warmup阶段不监控指标
-            },
-            "reduce_lr_on_plateau": {
-                "scheduler": reduce_scheduler,
-                "monitor": "val_ExpRate",
-                "interval": "epoch",
-                "frequency": self.trainer.check_val_every_n_epoch,
-                "strict": True,
-            },
-        }
+            warmup_scheduler = LambdaLR(optimizer, lr_lambda=warmup_lr)
+            return {
+                "optimizer": optimizer,
+                "lr_scheduler": {
+                    "scheduler": warmup_scheduler,
+                    "interval": "epoch",
+                    "frequency": 1,
+                    "reduce_on_plateau": False,  # Warmup阶段不监控指标
+                },
+                "reduce_lr_on_plateau": {
+                    "scheduler": reduce_scheduler,
+                    "monitor": "val_ExpRate",
+                    "interval": "epoch",
+                    "frequency": self.trainer.check_val_every_n_epoch,
+                    "strict": True,
+                },
+            }
+            
+        if self.hparams.scheduler_name == 'warmup_step':
+            warmup_scheduler = LinearWarmupScheduler(
+                optimizer, warmup_steps=5, final_lr=self.hparams.learning_rate)
+            scheduler = CombinedScheduler(warmup_scheduler, init_scheduler)
+        if self.hparams.scheduler_name == 'warmup_cosine':
+            # Define a lambda function for the learning rate schedule
+            def lr_lambda(current_step):
+                warmup_steps = self.hparams.warmup_steps
+                max_epochs = self.trainer.max_epochs
+
+                if current_step < warmup_steps:
+                    return float(current_step) / float(max(1, warmup_steps))
+                progress = float(current_step - warmup_steps) / \
+                    float(max(1, max_epochs - warmup_steps))
+                return 0.5 * (1.0 + math.cos(math.pi * progress))
+
+            scheduler = optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
+            
+        if scheduler is None:
+            scheduler = init_scheduler
+            
+        return {"optimizer": optimizer, "lr_scheduler": scheduler}
+
+        
+  
+        
 
