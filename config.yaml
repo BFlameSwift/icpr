@@ -40,6 +40,7 @@ model:
   # training
   learning_rate: 5e-4
   patience: 20
+  warmup_epochs: 200
   milestones:
     - 60
     - 140

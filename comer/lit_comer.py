@@ -37,10 +37,11 @@ class LitCoMER(pl.LightningModule):
         learning_rate: float,
         milestones: List[int],
         patience: int,
-
+        warmup_epochs: int,
     ):
         super().__init__()
         self.save_hyperparameters()
+        self.warmup_epochs = warmup_epochs
 
         self.comer_model = CoMER(
             d_model=d_model,
@@ -106,7 +107,7 @@ class LitCoMER(pl.LightningModule):
         
         # TODO  100 epochs for warm up
         # For the first 30 epochs, log a  increasing but small value for val_ExpRate to avoid triggering scheduler
-        if self.current_epoch < 18  and (self.current_epoch % 10 != 9  or self.current_epoch % 10 != 0 ):
+        if self.current_epoch < self.warmup_epochs:
             self.log(
                 "val_ExpRate",
                 self.exprate_recorder,
@@ -204,6 +205,13 @@ class LitCoMER(pl.LightningModule):
         #     eps=1e-6,
         #     weight_decay=1e-4,
         # )
+        def warmup_lr(epoch):
+            if epoch < self.warmup_epochs:
+                return 1.0
+            else:
+                return 0.1 ** ((epoch - self.warmup_epochs) // self.hparams.patience)
+        from torch.optim.lr_scheduler import LambdaLR
+        warmup_scheduler = LambdaLR(optimizer, lr_lambda=warmup_lr)
 
         reduce_scheduler = optim.lr_scheduler.ReduceLROnPlateau(
             optimizer,
@@ -211,13 +219,29 @@ class LitCoMER(pl.LightningModule):
             factor=0.1,
             patience=self.hparams.patience // self.trainer.check_val_every_n_epoch,
         )
-        scheduler = {
-            "scheduler": reduce_scheduler,
-            "monitor": "val_ExpRate",
-            "interval": "epoch",
-            "frequency": self.trainer.check_val_every_n_epoch,
-            "strict": True,
-        }
+        # scheduler = {
+        #     "scheduler": reduce_scheduler,
+        #     "monitor": "val_ExpRate",
+        #     "interval": "epoch",
+        #     "frequency": self.trainer.check_val_every_n_epoch,
+        #     "strict": True,
+        # }
 
-        return {"optimizer": optimizer, "lr_scheduler": scheduler}
+        # return {"optimizer": optimizer, "lr_scheduler": scheduler}
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": warmup_scheduler,
+                "interval": "epoch",
+                "frequency": 1,
+                "reduce_on_plateau": False,  # Warmup阶段不监控指标
+            },
+            "reduce_lr_on_plateau": {
+                "scheduler": reduce_scheduler,
+                "monitor": "val_ExpRate",
+                "interval": "epoch",
+                "frequency": self.trainer.check_val_every_n_epoch,
+                "strict": True,
+            },
+        }
 
