@@ -113,7 +113,7 @@ class LitCoMER(pl.LightningModule):
         
         # TODO  100 epochs for warm up
         # For the first 30 epochs, log a  increasing but small value for val_ExpRate to avoid triggering scheduler
-        if self.current_epoch < self.warmup_epochs:
+        if self.current_epoch < self.warmup_epochs * 0.8:
             self.log(
                 "val_ExpRate",
                 self.exprate_recorder,
@@ -215,15 +215,20 @@ class LitCoMER(pl.LightningModule):
                 factor=0.1,
                 patience=self.hparams.patience // self.trainer.check_val_every_n_epoch,
             )
-        
-        if self.hparams.scheduler_name == 'warmup_plateau':
-            
-            def warmup_lr(epoch):
+        def warmup_lr(epoch):
                 if epoch < self.warmup_epochs:
                     return 1.0
                 else:
                     return 0.1 ** ((epoch - self.warmup_epochs) // self.hparams.patience)
-
+                
+        if self.hparams.scheduler_name == 'plateau':
+            
+            scheduler = init_scheduler
+            return {"optimizer": optimizer, "lr_scheduler": scheduler}
+        
+        if self.hparams.scheduler_name == 'warmup_plateau':
+            
+            
             warmup_scheduler = LambdaLR(optimizer, lr_lambda=warmup_lr)
             return {
                 "optimizer": optimizer,

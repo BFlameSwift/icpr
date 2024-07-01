@@ -255,3 +255,44 @@ class CombinedScheduler:
     def load_state_dict(self, state_dict):
         self.warmup_scheduler.load_state_dict(state_dict["warmup_scheduler"])
         self.main_scheduler.load_state_dict(state_dict["main_scheduler"])
+        
+
+class CombinedScheduler2:
+    def __init__(self, warmup_scheduler, reduce_scheduler, warmup_epochs):
+        self.warmup_scheduler = warmup_scheduler
+        self.reduce_scheduler = reduce_scheduler
+        self.warmup_epochs = warmup_epochs
+        self.current_scheduler = warmup_scheduler
+
+    def step(self, epoch=None, metrics=None):
+        if epoch is not None and epoch >= self.warmup_epochs:
+            self.current_scheduler = self.reduce_scheduler
+        
+        if metrics is not None:
+            self.current_scheduler.step(metrics, epoch)
+        else:
+            self.current_scheduler.step(epoch)
+
+    def state_dict(self):
+        return {
+            'warmup_scheduler': self.warmup_scheduler.state_dict(),
+            'reduce_scheduler': self.reduce_scheduler.state_dict(),
+            'current_scheduler': self.current_scheduler.state_dict(),
+        }
+
+    def load_state_dict(self, state_dict):
+        self.warmup_scheduler.load_state_dict(state_dict['warmup_scheduler'])
+        self.reduce_scheduler.load_state_dict(state_dict['reduce_scheduler'])
+        self.current_scheduler.load_state_dict(state_dict['current_scheduler'])
+
+    def get_last_lr(self):
+        return self.current_scheduler.get_last_lr()
+ # 使用 CombinedScheduler 包装两个调度器
+        # combined_scheduler = CombinedScheduler(
+        #     warmup_scheduler, reduce_scheduler, self.warmup_epochs
+        # )
+
+        # return {
+        #     "optimizer": optimizer,
+        #     "lr_scheduler": combined_scheduler
+        # }
