@@ -7,9 +7,9 @@
 
 This project is based on the CoMER (Contextual Memory and External Representation) model and aims to participate in the ICPR 2024 (International Conference on Pattern Recognition) competition, focusing on the recognition of multi-line mathematical expressions.
 
-## the use of docker images
+## The use of docker images
 
-### download docker image
+### Download docker image
 
 1. baidu pan TODO
 2. docker load -i nic-icpr.tar
@@ -39,15 +39,15 @@ This project is based on the CoMER (Contextual Memory and External Representatio
     ```
     
 
-## model train from the beginning
+## Model train from the beginning
 
-1. download the git repo
+1. Download the git repo
     
     ```bash
     git clone https://github.com/BFlameSwift/icpr
     ```
     
-2. download and unzip data
+2. Download and unzip data
     
     ```bash
     # downlaod TestA and Train data
@@ -67,7 +67,7 @@ This project is based on the CoMER (Contextual Memory and External Representatio
     unzip ICPR\ 2024\ Competition\ on\ Multi-line\ Mathematical\ Expressions\ Recognition\ RegistrationForm\ trainning\ set.zip  -d ./data/source
     ```
     
-3. preprocess data
+3. Preprocess data
     
     ```bash
     cd icpr
@@ -97,9 +97,9 @@ This project is based on the CoMER (Contextual Memory and External Representatio
     ```
     
 
-## model inference
+## Model inference
 
-1. preprocess testA data
+1. Preprocess testA data
     
     ```bash
     conda activate icpr
@@ -108,13 +108,13 @@ This project is based on the CoMER (Contextual Memory and External Representatio
     ./5-rebag_testAdata.sh
     ```
     
-2. model inference in testA data
+2. Model inference in testA data
     
     ```bash
     python ./scripts/test/test.py  1 gray
     ```
     
-3. get answer.json
+3. Get answer.json
     
     ```bash
     python 6-process_testA_answer.py
