@@ -190,7 +190,7 @@ class CROHMEDatamodule(pl.LightningDataModule):
                 )
             if stage == "test" or stage is None:
                 self.test_dataset = CROHMEDataset(
-                    build_dataset(archive, "test", self.eval_batch_size),
+                    build_dataset(archive, self.test_year, self.eval_batch_size),
                     False,
                     self.scale_aug,
                 )

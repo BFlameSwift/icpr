@@ -27,7 +27,7 @@ def main(version: str, test_year: str):
     assert len(fnames) == 1
     ckp_path = os.path.join(ckp_folder, fnames[0])
     print(f"Test with fname: {fnames[0]}")
-
+    # must use single gpu test
     trainer = Trainer(logger=False, gpus=[0])
 
     dm = CROHMEDatamodule(test_year=test_year, eval_batch_size=4)
