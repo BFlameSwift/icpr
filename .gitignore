@@ -143,7 +143,8 @@ temp/
 
 *.log
 lightning_logs/*
-
+!lightning_logs/version_0/
+!lightning_logs/version_1/
 
 .env
 result.zip
