@@ -61,5 +61,5 @@ json.dump(answer_list, open(os.path.join(output_dir, "answer.json"), "w"), inden
 
 # %%
 
-
+print("answer.json in ",os.path.join(output_dir, "answer.json"))
 
