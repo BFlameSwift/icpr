@@ -2,8 +2,8 @@
  
  # Multi-line Mathematical Expressions Recognition Based on CoMER Model
 
-
 </div>
+# **Multi-line Mathematical Expressions Recognition Based on CoMER Model**
 
 This project is based on the CoMER (Contextual Memory and External Representation) model and aims to participate in the [ICPR 2024 (International Conference on Pattern Recognition) competition](https://note.kxsz.net/share/f4025d8b-7b50-4034-ad96-1b35633861d4), focusing on the recognition of multi-line mathematical expressions.
 
@@ -12,7 +12,7 @@ This project is based on the CoMER (Contextual Memory and External Representatio
 ### **Download docker image**
 
 1. [BaiduDisk with code icpr](https://pan.baidu.com/s/1I5qSFTGRyrSRPSlxcp3JkQ?pwd=icpr)
-2. docker load -i nic-icpr.tar
+2. `docker load -i nic-image.tar`
 
 ### **📝 Prerequisites**
 
@@ -27,7 +27,7 @@ This project is based on the CoMER (Contextual Memory and External Representatio
 1. download the docker images
 2. load docker image
     
-    `docker load -i nic-icpr.tar`
+    `docker load -i nic-image.tar`
     
 3. start up the container
     
@@ -39,15 +39,17 @@ This project is based on the CoMER (Contextual Memory and External Representatio
       -m 64g \
       nic-image \
       /bin/bash
-    
     ```
     
+4. `docker exec -it [id]  /bin/bash`
+5. `cd /root/icpr`
 
 ## **Model train from the beginning**
 
 1. Download the git repo
     
     ```bash
+    
     git clone https://github.com/BFlameSwift/icpr
     
     ```
@@ -70,6 +72,7 @@ This project is based on the CoMER (Contextual Memory and External Representatio
     
     # unzip train data
     unzip ICPR\ 2024\ Competition\ on\ Multi-line\ Mathematical\ Expressions\ Recognition\ RegistrationForm\ trainning\ set.zip  -d ./data/source
+    
     ```
     
 3. Preprocess data
@@ -84,6 +87,7 @@ This project is based on the CoMER (Contextual Memory and External Representatio
     python 1-preprocess image.py
     python 2-split_train_test.py
     ./3-rebag_data.sh
+    
     ```
     
 4. Next, navigate to icpr folder and run `train.py`. It may take 48 hours on 8 NVIDIA 2080Ti gpus using ddp.
@@ -91,6 +95,7 @@ This project is based on the CoMER (Contextual Memory and External Representatio
     ```bash
     # train CoMER(Fusion) model using 4 gpus and ddp
     python train.py --config config.yaml
+    
     ```
     
     For single gpu user, you may change the `config.yaml` file to
