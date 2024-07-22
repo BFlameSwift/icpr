@@ -3,7 +3,7 @@
  # Multi-line Mathematical Expressions Recognition Based on CoMER Model
 
 </div>
-# **Multi-line Mathematical Expressions Recognition Based on CoMER Model**
+
 
 This repository is based on the CoMER (Contextual Memory and External Representation) model and aims to participate in the [ICPR 2024 (International Conference on Pattern Recognition Competition](https://note.kxsz.net/share/f4025d8b-7b50-4034-ad96-1b35633861d4), focusing on the recognition of multi-line mathematical expressions.
 
