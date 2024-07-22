@@ -5,8 +5,9 @@
 </div>
 # **Multi-line Mathematical Expressions Recognition Based on CoMER Model**
 
-This project is based on the CoMER (Contextual Memory and External Representation) model and aims to participate in the [ICPR 2024 (International Conference on Pattern Recognition) competition](https://note.kxsz.net/share/f4025d8b-7b50-4034-ad96-1b35633861d4), focusing on the recognition of multi-line mathematical expressions.
+This repository is based on the CoMER (Contextual Memory and External Representation) model and aims to participate in the [ICPR 2024 (International Conference on Pattern Recognition) competition](https://note.kxsz.net/share/f4025d8b-7b50-4034-ad96-1b35633861d4), focusing on the recognition of multi-line mathematical expressions.
 
+Our team name is **None Information Given(NIG)**, winning 4th place in this competition
 ## **The use of docker images**
 
 ### **Download docker image**
